@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task 3 — The Knowledge Analyst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0a0e1a;
+  --ink2: #111827;
+  --paper: #f5f0e8;
+  --paper2: #ede8dc;
+  --amber: #d97706;
+  --amber-l: #fbbf24;
+  --amber-dim: rgba(217,119,6,0.12);
+  --red: #dc2626;
+  --red-dim: rgba(220,38,38,0.1);
+  --green: #059669;
+  --green-dim: rgba(5,150,105,0.1);
+  --blue: #1d4ed8;
+  --blue-dim: rgba(29,78,216,0.08);
+  --muted: #6b7280;
+  --border: rgba(10,14,26,0.12);
+  --mono: 'DM Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* grain texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.6;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 56px;
+  background: rgba(245,240,232,0.9);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-brand {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--amber);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.nav-links {
+  display: flex; gap: 28px; list-style: none;
+}
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--ink); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 40px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* large decorative background text */
+.hero-bg-text {
+  position: absolute;
+  font-family: var(--display);
+  font-size: clamp(80px, 18vw, 200px);
+  font-weight: 800;
+  color: rgba(10,14,26,0.04);
+  letter-spacing: -0.04em;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+}
+
+.hero-content { position: relative; z-index: 1; }
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--amber);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.2s forwards;
+}
+
+.hero-title {
+  font-family: var(--display);
+  font-size: clamp(48px, 9vw, 96px);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.35s forwards;
+}
+
+.hero-title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--amber);
+}
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 520px;
+  margin: 20px auto 36px;
+  line-height: 1.7;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.5s forwards;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 56px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.65s forwards;
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  color: var(--ink);
+  background: rgba(10,14,26,0.04);
+  border-radius: 2px;
+}
+
+.hero-stats {
+  display: flex; gap: 56px; justify-content: center;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.8s forwards;
+}
+
+.stat-num {
+  font-family: var(--display);
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--amber);
+  display: block;
+  line-height: 1;
+}
+.stat-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 4px;
+  display: block;
+}
+
+/* ── SECTION WRAPPER ── */
+.section {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 80px 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.section-left { display: flex; align-items: baseline; gap: 16px; }
+
+.section-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+.section-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.section-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid;
+  border-radius: 2px;
+}
+
+.badge-amber { color: var(--amber); border-color: var(--amber); background: var(--amber-dim); }
+.badge-red { color: var(--red); border-color: var(--red); background: var(--red-dim); }
+.badge-green { color: var(--green); border-color: var(--green); background: var(--green-dim); }
+.badge-blue { color: var(--blue); border-color: var(--blue); background: var(--blue-dim); }
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 40px;
+}
+
+/* ── RAG PIPELINE ── */
+.pipeline {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 40px;
+  overflow-x: auto;
+}
+
+.pipeline-step {
+  flex: 1;
+  min-width: 140px;
+  background: var(--paper2);
+  border: 1px solid var(--border);
+  border-right: none;
+  padding: 20px 16px;
+  position: relative;
+  transition: background 0.2s;
+}
+.pipeline-step:last-child { border-right: 1px solid var(--border); }
+.pipeline-step:hover { background: rgba(217,119,6,0.06); }
+
+.pipeline-step::after {
+  content: '→';
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--amber);
+  background: var(--paper);
+  padding: 2px 0;
+  z-index: 2;
+}
+.pipeline-step:last-child::after { display: none; }
+
+.step-icon {
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--amber);
+  margin-bottom: 8px;
+  display: block;
+}
+.step-name {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+.step-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── CHUNKS GRID ── */
+.chunks-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.chunk-pill {
+  background: var(--paper2);
+  border: 1px solid var(--border);
+  padding: 6px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 2px;
+}
+.chunk-pill:hover, .chunk-pill.active {
+  background: var(--amber-dim);
+  border-color: var(--amber);
+}
+.chunk-pill-id {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--amber);
+  display: block;
+  font-weight: 500;
+}
+.chunk-pill-sec {
+  font-size: 9px;
+  color: var(--muted);
+  display: block;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.chunk-detail {
+  background: var(--ink2);
+  color: rgba(245,240,232,0.85);
+  padding: 20px 24px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.7;
+  border-radius: 2px;
+  min-height: 120px;
+  display: none;
+}
+.chunk-detail.visible { display: block; }
+.chunk-detail-header {
+  color: var(--amber-l);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+/* ── QA CARDS ── */
+.qa-card {
+  background: white;
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(10,14,26,0.06);
+}
+
+.qa-question {
+  padding: 18px 24px;
+  background: var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: background 0.2s;
+}
+.qa-question:hover { background: var(--ink2); }
+
+.qa-q-text {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--paper);
+  flex: 1;
+}
+
+.qa-toggle {
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--amber-l);
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+.qa-card.open .qa-toggle { transform: rotate(45deg); }
+
+.qa-body { display: none; padding: 20px 24px; }
+.qa-card.open .qa-body { display: block; }
+
+.qa-chunks-used {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.chunk-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  background: var(--amber-dim);
+  border: 1px solid rgba(217,119,6,0.3);
+  color: var(--amber);
+  border-radius: 2px;
+  letter-spacing: 0.06em;
+}
+
+.qa-answer {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.citation-inline {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 1px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+  border: 1px solid rgba(29,78,216,0.2);
+}
+
+.sources-list {
+  background: var(--paper2);
+  border-left: 3px solid var(--amber);
+  padding: 12px 16px;
+  margin-top: 12px;
+}
+.sources-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--amber);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.source-item {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  padding: 3px 0;
+  display: flex; gap: 8px; align-items: center;
+}
+.source-item::before { content: '→'; color: var(--amber); }
+
+/* ── PROMPT CARDS ── */
+.prompt-block {
+  margin-bottom: 28px;
+}
+.prompt-type-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--amber);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.prompt-box {
+  background: var(--ink);
+  color: rgba(245,240,232,0.85);
+  padding: 20px 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.8;
+  border-radius: 2px;
+  position: relative;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.prompt-highlight { color: var(--amber-l); font-weight: 500; }
+.prompt-rule { color: #86efac; }
+.prompt-comment { color: #94a3b8; font-style: italic; }
+
+.copy-btn {
+  position: absolute;
+  top: 12px; right: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 10px;
+  border: 1px solid rgba(245,240,232,0.2);
+  background: transparent;
+  color: rgba(245,240,232,0.5);
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: all 0.2s;
+  border-radius: 2px;
+}
+.copy-btn:hover { background: rgba(245,240,232,0.1); color: var(--amber-l); }
+
+/* ── DASHBOARD ── */
+.dashboard-tabs {
+  display: flex; gap: 0; margin-bottom: 24px;
+  border-bottom: 2px solid var(--ink);
+}
+.dash-tab {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+.dash-tab.active {
+  color: var(--ink);
+  border-bottom-color: var(--amber);
+  background: var(--amber-dim);
+}
+
+.dash-panel { display: none; }
+.dash-panel.active { display: block; }
+
+/* Risk cards */
+.risks-grid { display: flex; flex-direction: column; gap: 10px; }
+
+.risk-card {
+  display: grid;
+  grid-template-columns: 60px 80px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--border);
+  padding: 14px 20px;
+  box-shadow: 0 1px 2px rgba(10,14,26,0.04);
+  transition: box-shadow 0.2s;
+}
+.risk-card:hover { box-shadow: 0 3px 8px rgba(10,14,26,0.1); }
+
+.risk-id {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.severity-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 2px;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+.sev-HIGH { background: var(--red-dim); color: var(--red); border: 1px solid rgba(220,38,38,0.3); }
+.sev-MEDIUM { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(217,119,6,0.3); }
+.sev-LOW { background: var(--green-dim); color: var(--green); border: 1px solid rgba(5,150,105,0.3); }
+
+.risk-content {}
+.risk-title {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+.risk-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.risk-cite {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--blue);
+  white-space: nowrap;
+  background: var(--blue-dim);
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid rgba(29,78,216,0.15);
+}
+
+/* Dates */
+.dates-list { display: flex; flex-direction: column; gap: 0; }
+.date-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 160px 80px;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: white;
+  transition: background 0.15s;
+}
+.date-row:first-child { border-top: 1px solid var(--border); }
+.date-row:hover { background: rgba(217,119,6,0.04); }
+
+.urgency-pill {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  padding: 3px 7px;
+  border-radius: 2px;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+.urg-CRITICAL { background: var(--red-dim); color: var(--red); border: 1px solid rgba(220,38,38,0.3); }
+.urg-UPCOMING { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(217,119,6,0.3); }
+.urg-FUTURE { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(29,78,216,0.2); }
+.urg-PAST { background: rgba(10,14,26,0.05); color: var(--muted); border: 1px solid var(--border); }
+.urg-CONDITIONAL { background: var(--green-dim); color: var(--green); border: 1px solid rgba(5,150,105,0.3); }
+
+.date-event {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.date-val {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+}
+.date-cite {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* Stakeholders */
+.stakeholders-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.stakeholder-card {
+  background: white;
+  border: 1px solid var(--border);
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(10,14,26,0.04);
+}
+.s-role {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--amber);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.s-name {
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.s-rep {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.s-detail {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  padding: 3px 0;
+  display: flex; gap: 8px;
+}
+.s-detail-key { color: var(--ink); min-width: 50px; }
+.s-cite {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--blue);
+  margin-top: 8px;
+  background: var(--blue-dim);
+  padding: 3px 8px;
+  display: inline-block;
+  border-radius: 2px;
+}
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 48px 40px;
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+  position: relative;
+  z-index: 1;
+}
+.footer-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+.footer-text a { color: var(--amber); text-decoration: none; }
+.footer-text span { margin: 0 8px; opacity: 0.4; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* info box */
+.info-box {
+  background: var(--amber-dim);
+  border-left: 3px solid var(--amber);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.info-box strong { color: var(--amber); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">TASK 03 · THE KNOWLEDGE ANALYST</div>
+  <ul class="nav-links">
+    <li><a href="#rag">RAG Pipeline</a></li>
+    <li><a href="#prompts">Prompts</a></li>
+    <li><a href="#qa">Q&amp;A Demo</a></li>
+    <li><a href="#dashboard">Dashboard</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-text">RAG</div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Task 3 · RAG Concepts · DecodeLabs</div>
+    <h1 class="hero-title">The Knowledge<br><em>Analyst</em></h1>
+    <p class="hero-sub">Simulating a Retrieval-Augmented Generation workflow on a 24-page legal contract — citation-enforced Q&amp;A, zero hallucination, and an auto-extracted Summary Dashboard.</p>
+    <div class="hero-tags">
+      <span class="tag">RAG Workflow</span>
+      <span class="tag">Citation Enforcement</span>
+      <span class="tag">Document Chunking</span>
+      <span class="tag">Risk Extraction</span>
+      <span class="tag">Zero Hallucination</span>
+      <span class="tag">Legal AI</span>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">24</span><span class="stat-label">Doc Chunks</span></div>
+      <div class="stat"><span class="stat-num">5</span><span class="stat-label">Engineered Prompts</span></div>
+      <div class="stat"><span class="stat-num">9</span><span class="stat-label">Risks Extracted</span></div>
+      <div class="stat"><span class="stat-num">14</span><span class="stat-label">Dates Flagged</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 0: Document -->
+<section class="section fade-in" id="doc">
+  <div class="section-header">
+    <div class="section-left">
+      <span class="section-num">00</span>
+      <span class="section-title">Source Document</span>
+    </div>
+    <span class="section-badge badge-amber">NSA-2024-LC-0091</span>
+  </div>
+  <div class="info-box">
+    <strong>Document:</strong> Master Service Agreement & Technology Licensing Contract between <strong>NexCore Systems Inc.</strong> (Service Provider) and <strong>Meridian Law Group LLP</strong> (Client). 24 pages · 3-year term · Effective January 15, 2025 · Total contract value USD $1,515,000. This document was used as the RAG knowledge base for all Q&amp;A, prompt engineering, and dashboard extraction below.
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px;">
+    <div style="background:white;border:1px solid var(--border);padding:16px;text-align:center;">
+      <div style="font-family:var(--mono);font-size:24px;font-weight:500;color:var(--amber);">24</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;margin-top:4px;">PAGES</div>
+    </div>
+    <div style="background:white;border:1px solid var(--border);padding:16px;text-align:center;">
+      <div style="font-family:var(--mono);font-size:24px;font-weight:500;color:var(--amber);">17</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;margin-top:4px;">SECTIONS</div>
+    </div>
+    <div style="background:white;border:1px solid var(--border);padding:16px;text-align:center;">
+      <div style="font-family:var(--mono);font-size:24px;font-weight:500;color:var(--amber);">3</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;margin-top:4px;">PARTIES</div>
+    </div>
+    <div style="background:white;border:1px solid var(--border);padding:16px;text-align:center;">
+      <div style="font-family:var(--mono);font-size:24px;font-weight:500;color:var(--amber);">$1.5M</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;margin-top:4px;">CONTRACT VALUE</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 1: RAG PIPELINE -->
+<section class="section fade-in" id="rag">
+  <div class="section-header">
+    <div class="section-left">
+      <span class="section-num">01</span>
+      <span class="section-title">RAG Pipeline</span>
+    </div>
+    <span class="section-badge badge-amber">Retrieval-Augmented Generation</span>
+  </div>
+
+  <div class="info-box">
+    <strong>What is RAG?</strong> Instead of letting the AI answer from its training data (which causes hallucination), RAG first retrieves the most relevant chunks from the actual document, then generates an answer grounded only in those chunks. Every answer is traceable to a specific page and clause.
+  </div>
+
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <span class="step-icon">[📄]</span>
+      <div class="step-name">Document Ingestion</div>
+      <div class="step-desc">24-page PDF contract loaded and parsed</div>
+    </div>
+    <div class="pipeline-step">
+      <span class="step-icon">[✂]</span>
+      <div class="step-name">Chunking</div>
+      <div class="step-desc">Split into 24 chunks — one per page, tagged with section metadata</div>
+    </div>
+    <div class="pipeline-step">
+      <span class="step-icon">[🔍]</span>
+      <div class="step-name">Retrieval</div>
+      <div class="step-desc">Query scored against chunks — top 3 most relevant retrieved</div>
+    </div>
+    <div class="pipeline-step">
+      <span class="step-icon">[🧠]</span>
+      <div class="step-name">Augmentation</div>
+      <div class="step-desc">Retrieved chunks injected into prompt as context</div>
+    </div>
+    <div class="pipeline-step">
+      <span class="step-icon">[💬]</span>
+      <div class="step-name">Generation</div>
+      <div class="step-desc">AI answers using ONLY provided chunks — with citations</div>
+    </div>
+    <div class="pipeline-step">
+      <span class="step-icon">[📌]</span>
+      <div class="step-name">Citation</div>
+      <div class="step-desc">Every fact tagged with [Section X.X, Page N] — zero hallucination</div>
+    </div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">Document Chunks — Click to preview</div>
+  <div class="chunks-grid" id="chunksGrid"></div>
+  <div class="chunk-detail" id="chunkDetail">
+    <div class="chunk-detail-header">Select a chunk above to preview its content</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 2: CITATION PROMPTS -->
+<section class="section fade-in" id="prompts">
+  <div class="section-header">
+    <div class="section-left">
+      <span class="section-num">02</span>
+      <span class="section-title">Citation-Enforced Prompts</span>
+    </div>
+    <span class="section-badge badge-blue">Prompt Engineering</span>
+  </div>
+
+  <div class="info-box">
+    <strong>Citation enforcement</strong> is achieved through strict prompt rules that prevent the AI from answering without referencing the source. Every claim must end with <strong>[Section X.X, Page N]</strong>. If the document doesn't contain the answer, the AI must say so — not invent one.
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-type-label">01 · System Prompt — Master instruction for the AI</div>
+    <div class="prompt-box"><button class="copy-btn" onclick="copyPrompt(this)">COPY</button><span class="prompt-highlight">You are a Legal Document Intelligence Assistant</span> analyzing contract NSA-2024-LC-0091 (Master Service Agreement between NexCore Systems Inc. and Meridian Law Group LLP).
+
+<span class="prompt-highlight">STRICT CITATION RULES</span> — <span class="prompt-rule">YOU MUST FOLLOW THESE WITHOUT EXCEPTION:</span>
+<span class="prompt-rule">1.</span> NEVER answer from general knowledge. Every answer must come ONLY from the provided document chunks.
+<span class="prompt-rule">2.</span> EVERY factual claim must end with a citation in this exact format: <span class="prompt-highlight">[Section X.X, Page N]</span>
+<span class="prompt-rule">3.</span> If a question cannot be answered from the provided chunks, respond: <span class="prompt-comment">"This information is not found in the retrieved sections."</span>
+<span class="prompt-rule">4.</span> Always state which chunks were searched before answering.
+<span class="prompt-rule">5.</span> If multiple sections are relevant, cite ALL of them.
+<span class="prompt-rule">6.</span> Never speculate or infer beyond what is explicitly stated in the document.
+<span class="prompt-rule">7.</span> Begin every response with: <span class="prompt-highlight">"Based on the retrieved document sections:"</span>
+
+<span class="prompt-highlight">RESPONSE FORMAT:</span>
+CHUNKS SEARCHED: [list chunk IDs and pages]
+ANSWER: [your answer with inline citations]
+CONFIDENCE: [HIGH / MEDIUM / LOW]</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-type-label">02 · Citation Template Prompt — Per-query wrapper</div>
+    <div class="prompt-box"><button class="copy-btn" onclick="copyPrompt(this)">COPY</button><span class="prompt-highlight">DOCUMENT CHUNKS PROVIDED:</span>
+{chunks}
+
+<span class="prompt-highlight">USER QUESTION:</span> {question}
+
+<span class="prompt-rule">Instructions:</span>
+- Answer ONLY using information from the chunks above
+- Cite every fact as <span class="prompt-highlight">[Section X.X, Page N]</span> immediately after the claim
+- If the answer spans multiple sections, cite each one separately
+- Start with <span class="prompt-comment">"Based on the retrieved document sections:"</span>
+- End with a <span class="prompt-highlight">SOURCES LIST</span> summarizing all cited sections</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-type-label">03 · Risk Extraction Prompt</div>
+    <div class="prompt-box"><button class="copy-btn" onclick="copyPrompt(this)">COPY</button><span class="prompt-highlight">TASK:</span> Extract ALL risk-related clauses from these document sections.
+
+For each risk found, output EXACTLY this format:
+<span class="prompt-rule">RISK ID:</span> R[number]
+<span class="prompt-rule">TITLE:</span> [short risk name]
+<span class="prompt-rule">SEVERITY:</span> [HIGH / MEDIUM / LOW]
+<span class="prompt-rule">CLAUSE:</span> [section number]
+<span class="prompt-rule">PAGE:</span> [page number]
+<span class="prompt-rule">DESCRIPTION:</span> [one sentence — risk to the client]
+<span class="prompt-rule">CITATION:</span> [Section X.X, Page N]
+---
+
+<span class="prompt-highlight">Rules:</span>
+- Only extract risks explicitly stated in the document
+- Do NOT infer or add risks not mentioned in the text
+- Every risk must have a citation
+- Mark HIGH if it involves financial penalty, liability, or service suspension</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-type-label">04 · Date Extraction Prompt</div>
+    <div class="prompt-box"><button class="copy-btn" onclick="copyPrompt(this)">COPY</button><span class="prompt-highlight">TASK:</span> Extract EVERY date, deadline, and time-bound obligation from these sections.
+
+For each date found, output EXACTLY this format:
+<span class="prompt-rule">DATE ID:</span> D[number]
+<span class="prompt-rule">EVENT:</span> [what happens on this date]
+<span class="prompt-rule">DATE:</span> [exact date or timeframe]
+<span class="prompt-rule">CLAUSE:</span> [section number]
+<span class="prompt-rule">PAGE:</span> [page number]
+<span class="prompt-rule">URGENCY:</span> [CRITICAL / UPCOMING / FUTURE / CONDITIONAL / PAST]
+<span class="prompt-rule">CITATION:</span> [Section X.X, Page N]
+---
+
+<span class="prompt-highlight">Rules:</span>
+- Include ALL dates — payments, deadlines, renewals, survival periods
+- CRITICAL = dates that if missed trigger automatic consequences
+- CONDITIONAL = dates that only apply if a specific event occurs
+- Every date must have a citation from the document</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-type-label">05 · Stakeholder Extraction Prompt</div>
+    <div class="prompt-box"><button class="copy-btn" onclick="copyPrompt(this)">COPY</button><span class="prompt-highlight">TASK:</span> Identify ALL entities, organizations, and individuals mentioned in these sections.
+
+For each stakeholder found, output EXACTLY this format:
+<span class="prompt-rule">STAKEHOLDER ID:</span> S[number]
+<span class="prompt-rule">NAME:</span> [full legal name]
+<span class="prompt-rule">ROLE:</span> [their role in this contract]
+<span class="prompt-rule">REPRESENTATIVE:</span> [person representing them, if named]
+<span class="prompt-rule">CONTACT:</span> [email or address if provided]
+<span class="prompt-rule">PAGE:</span> [page where first mentioned]
+<span class="prompt-rule">CITATION:</span> [Page N, Section / Cover]
+---
+
+<span class="prompt-highlight">Rules:</span>
+- Include primary parties, guarantors, sub-processors, third-party services
+- Only include entities explicitly named in the document
+- Every stakeholder must have a citation</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 3: Q&A DEMO -->
+<section class="section fade-in" id="qa">
+  <div class="section-header">
+    <div class="section-left">
+      <span class="section-num">03</span>
+      <span class="section-title">Q&amp;A With Citations</span>
+    </div>
+    <span class="section-badge badge-green">5 Live Examples</span>
+  </div>
+
+  <div class="info-box">
+    Every answer below was generated using only the retrieved document chunks. Each factual claim carries a <strong>[Section X.X, Page N]</strong> citation. The final example demonstrates what happens when the question cannot be answered from the document — the AI refuses to hallucinate.
+  </div>
+
+  <div id="qaContainer"></div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 4: DASHBOARD -->
+<section class="section fade-in" id="dashboard">
+  <div class="section-header">
+    <div class="section-left">
+      <span class="section-num">04</span>
+      <span class="section-title">Summary Dashboard</span>
+    </div>
+    <span class="section-badge badge-red">Auto-Extracted</span>
+  </div>
+
+  <div class="info-box">
+    The dashboard below was <strong>automatically extracted</strong> from the contract using the three extraction prompts above. No manual input — the AI parsed the document and categorized every risk, date, and stakeholder with its source citation.
+  </div>
+
+  <div class="dashboard-tabs">
+    <button class="dash-tab active" onclick="switchTab('risks', this)">⚠ Risks (9)</button>
+    <button class="dash-tab" onclick="switchTab('dates', this)">📅 Dates (14)</button>
+    <button class="dash-tab" onclick="switchTab('stakeholders', this)">👤 Stakeholders (5)</button>
+  </div>
+
+  <div id="dash-risks" class="dash-panel active"></div>
+  <div id="dash-dates" class="dash-panel"></div>
+  <div id="dash-stakeholders" class="dash-panel"></div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p class="footer-text">
+    Task 3 <span>·</span> The Knowledge Analyst <span>·</span> RAG Concepts <span>·</span> Built with <a href="https://claude.ai">Claude</a> &amp; Python <span>·</span> DecodeLabs Internship
+  </p>
+</footer>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const chunks = [
+  {id:"CHUNK_01",page:1,section:"Cover / Parties",words:111},
+  {id:"CHUNK_02",page:2,section:"Table of Contents",words:122},
+  {id:"CHUNK_03",page:3,section:"Sec 1 — Definitions",words:209},
+  {id:"CHUNK_04",page:4,section:"Sec 2 — Scope of Services",words:189},
+  {id:"CHUNK_05",page:5,section:"Sec 3 — License Grant",words:208},
+  {id:"CHUNK_06",page:6,section:"Sec 4 — Payment Terms",words:195},
+  {id:"CHUNK_07",page:7,section:"Sec 5 — IP Rights",words:171},
+  {id:"CHUNK_08",page:8,section:"Sec 6 — Confidentiality",words:160},
+  {id:"CHUNK_09",page:9,section:"Sec 7 — Data Protection",words:200},
+  {id:"CHUNK_10",page:10,section:"Sec 8 — SLA",words:144},
+  {id:"CHUNK_11",page:11,section:"Sec 9 — Warranties",words:184},
+  {id:"CHUNK_12",page:12,section:"Sec 10 — Indemnification",words:127},
+  {id:"CHUNK_13",page:13,section:"Sec 11 — Liability",words:122},
+  {id:"CHUNK_14",page:14,section:"Sec 12 — Risk Allocation",words:171},
+  {id:"CHUNK_15",page:15,section:"Sec 13 — Termination",words:207},
+  {id:"CHUNK_16",page:16,section:"Sec 14 — Disputes",words:143},
+  {id:"CHUNK_17",page:17,section:"Sec 15 — Force Majeure",words:82},
+  {id:"CHUNK_18",page:18,section:"Sec 16 — Governing Law",words:159},
+  {id:"CHUNK_19",page:19,section:"Sec 17 — Key Dates",words:113},
+  {id:"CHUNK_20",page:20,section:"Exhibit A — Services",words:120},
+  {id:"CHUNK_21",page:21,section:"Exhibit B — Pricing",words:79},
+  {id:"CHUNK_22",page:22,section:"Exhibit C — DPA",words:83},
+  {id:"CHUNK_23",page:23,section:"Exhibit D — AUP",words:56},
+  {id:"CHUNK_24",page:24,section:"Execution / Signatures",words:54},
+];
+
+const chunkPreviews = {
+  "CHUNK_01": "CONTRACT ID: NSA-2024-LC-0091 | EFFECTIVE DATE: January 15, 2025 | EXPIRY: January 14, 2028\n\nPARTIES:\nService Provider: NexCore Systems Inc. — Adrian Cole, CEO — legal@nexcoresystems.com\nClient: Meridian Law Group LLP — Priya Weston, Managing Partner — contracts@meridianlaw.com\nGuarantor: Meridian Global Holdings Inc. — Thomas Reeves, Chairman",
+  "CHUNK_03": "1.3 \"Licensed Software\" — NexCore's proprietary AI document intelligence platform, branded as \"NexCore Insight v3.2\"\n1.7 \"Breach\" — material failure uncured for more than thirty (30) calendar days after written notice\n1.8 \"Force Majeure Event\" — any event beyond a party's reasonable control including acts of God, war, pandemic, cyberattacks by state actors...",
+  "CHUNK_05": "3.3 LICENSE FEE: Annual fee USD $480,000, payable in quarterly installments of USD $120,000:\n— First installment: January 15, 2025\n— Second installment: April 15, 2025\n— Third installment: July 15, 2025\n— Fourth installment: October 15, 2025\n\n3.2 RESTRICTIONS: Meridian shall not sublicense, reverse engineer, or exceed 200 concurrent users without prior written approval.",
+  "CHUNK_09": "7.4 DATA BREACH NOTIFICATION: NexCore shall notify Meridian within seventy-two (72) hours of discovery. Full incident report within fifteen (15) business days. Failure to notify constitutes material Breach and triggers indemnification under Section 10.\n\n7.5 DATA RETENTION: Upon termination, NexCore shall securely delete all Client Data within thirty (30) days.",
+  "CHUNK_14": "12.1 AI OUTPUT RISK: Meridian assumes full responsibility for decisions made on unreviewed AI outputs. NexCore bears NO liability for errors in AI-generated content.\n12.2 REGULATORY RISK: Meridian bears risk of future AI regulation changes.\n12.4 CONCENTRATION RISK: Over-reliance on single vendor — maintain manual backup processes.",
+  "CHUNK_15": "13.2 RENEWAL: Auto-renews unless 90 days notice given. First renewal deadline: October 16, 2027.\n13.4 TERMINATION FOR CONVENIENCE: 180 days written notice + early termination fee = 25% of remaining contract value.\n13.3 TERMINATION FOR CAUSE: Material breach uncured in 30 days, insolvency, or fraudulent conduct.",
+};
+
+const qaData = [
+  {
+    type:"Payment",
+    question:"What is the total contract value and how are payments structured?",
+    chunks:["CHUNK_05","CHUNK_06","CHUNK_21"],
+    answer:`Based on the retrieved document sections:\n\nThe annual license fee is <strong>USD $480,000</strong> <cite>[Section 3.3, Page 5]</cite>, payable in quarterly installments of <strong>USD $120,000</strong> <cite>[Section 3.3, Page 5]</cite>. Payment dates: January 15, 2025 · April 15, 2025 · July 15, 2025 · October 15, 2025 <cite>[Section 3.3, Page 5]</cite>. A one-time implementation fee of <strong>USD $75,000</strong> is also due on January 15, 2025 <cite>[Exhibit B, Page 21]</cite>. The total contract value over three years is <strong>USD $1,515,000</strong> excluding Change Orders <cite>[Exhibit B, Page 21]</cite>. Late payment accrues interest at 1.5% per month (18% per annum) <cite>[Section 4.2, Page 6]</cite>.`,
+    sources:["Section 3.3 (Page 5)","Section 4.2 (Page 6)","Exhibit B (Page 21)"],
+    confidence:"HIGH"
+  },
+  {
+    type:"Risk",
+    question:"What liability does NexCore have if their AI gives wrong legal advice?",
+    chunks:["CHUNK_14","CHUNK_13"],
+    answer:`Based on the retrieved document sections:\n\nMeridian assumes <strong>full responsibility</strong> for decisions made in reliance on AI outputs without independent legal review <cite>[Section 12.1, Page 14]</cite>. NexCore bears <strong>zero liability</strong> for damages arising from unreviewed AI outputs used in client matters <cite>[Section 12.1, Page 14]</cite>. Furthermore, NexCore's total aggregate liability is capped at <strong>12 months of fees paid</strong> (≈ USD $480,000) <cite>[Section 11.1, Page 13]</cite>, and consequential damages including lost profits are excluded entirely <cite>[Section 11.2, Page 13]</cite>. Section 9.3 also disclaims all implied warranties including accuracy of AI-generated outputs <cite>[Section 9.3, Page 11]</cite>.`,
+    sources:["Section 12.1 (Page 14)","Section 11.1 (Page 13)","Section 11.2 (Page 13)","Section 9.3 (Page 11)"],
+    confidence:"HIGH"
+  },
+  {
+    type:"Termination",
+    question:"Can Meridian exit the contract early and what will it cost?",
+    chunks:["CHUNK_15"],
+    answer:`Based on the retrieved document sections:\n\nYes, Meridian may terminate for convenience with <strong>180 days written notice</strong> <cite>[Section 13.4, Page 15]</cite>. However, Meridian remains liable for all fees through the end of the notice period, plus an <strong>early termination fee equal to 25% of the remaining contract value</strong> <cite>[Section 13.4, Page 15]</cite>. Termination for cause (e.g. NexCore's material breach) requires only <strong>30 days written notice</strong> and carries no termination fee <cite>[Section 13.3, Page 15]</cite>. The contract auto-renews unless <strong>90 days notice</strong> is given by October 16, 2027 <cite>[Section 13.2, Page 15]</cite>.`,
+    sources:["Section 13.4 (Page 15)","Section 13.3 (Page 15)","Section 13.2 (Page 15)"],
+    confidence:"HIGH"
+  },
+  {
+    type:"Data Security",
+    question:"What happens if there is a data breach affecting Meridian's files?",
+    chunks:["CHUNK_09","CHUNK_12"],
+    answer:`Based on the retrieved document sections:\n\nNexCore must notify Meridian within <strong>72 hours</strong> of discovering a confirmed data breach <cite>[Section 7.4, Page 9]</cite>. A full incident report must follow within <strong>15 business days</strong> <cite>[Section 7.4, Page 9]</cite>. Failure to notify within 72 hours constitutes a <strong>material Breach</strong> and triggers indemnification obligations against NexCore <cite>[Section 7.4, Page 9]</cite>. Under Section 10.1(c), NexCore must indemnify Meridian for data breaches caused by NexCore's failure to maintain ISO 27001 security standards <cite>[Section 10.1, Page 12]</cite>. Post-termination, all Client Data must be securely deleted within <strong>30 days</strong> <cite>[Section 7.5, Page 9]</cite>.`,
+    sources:["Section 7.4 (Page 9)","Section 7.5 (Page 9)","Section 10.1 (Page 12)"],
+    confidence:"HIGH"
+  },
+  {
+    type:"Unanswerable",
+    question:"What is NexCore's annual revenue and how many employees do they have?",
+    chunks:["CHUNK_01","CHUNK_11"],
+    answer:`<strong style="color:#dc2626">This information is not found in the retrieved sections.</strong>\n\nThe document does not contain financial performance data or headcount information about NexCore Systems Inc. beyond the contract fees specified in this Agreement. The document only references NexCore's registration number (DE-CORP-2019-0047821) <cite>[Cover Page, Page 1]</cite> and the requirement that Services be performed by "qualified professionals" <cite>[Section 9.1(b), Page 11]</cite>.\n\nPlease consult NexCore's financial disclosures or official filings for this information.`,
+    sources:["Cover Page (Page 1)","Section 9.1 (Page 11)"],
+    confidence:"N/A — Question out of scope"
+  },
+];
+
+const risks = [
+  {id:"R1",title:"AI Output Liability",severity:"HIGH",clause:"12.1",page:14,description:"Meridian assumes full responsibility for decisions made on unreviewed AI outputs. NexCore bears zero liability for errors in AI-generated content used in client matters."},
+  {id:"R2",title:"Early Termination Fee",severity:"HIGH",clause:"13.4",page:15,description:"If Meridian terminates for convenience, it must pay all fees through 180-day notice period PLUS 25% of remaining contract value as an exit penalty."},
+  {id:"R3",title:"Liability Cap",severity:"HIGH",clause:"11.1",page:13,description:"NexCore's total liability is capped at 12 months of fees paid — approximately USD $480,000 — regardless of the magnitude of damage caused."},
+  {id:"R4",title:"Late Payment Suspension",severity:"MEDIUM",clause:"4.2",page:6,description:"Invoices unpaid for 60+ days allow NexCore to suspend all Services. Late payments accrue 1.5% monthly interest (18% per annum)."},
+  {id:"R5",title:"Annual Price Escalation",severity:"MEDIUM",clause:"4.5",page:6,description:"NexCore may increase fees annually by up to 5% or CPI (whichever is greater) with 90 days notice — compounding over the 3-year term."},
+  {id:"R6",title:"Data Breach Notification",severity:"MEDIUM",clause:"7.4",page:9,description:"Failure to notify of a data breach within 72 hours constitutes a material Breach and triggers indemnification obligations against NexCore."},
+  {id:"R7",title:"Regulatory Change Risk",severity:"MEDIUM",clause:"12.2",page:14,description:"Meridian bears the risk if future regulations restrict or prohibit AI use in legal practice — no contract relief provided."},
+  {id:"R8",title:"Concentration / Vendor Risk",severity:"LOW",clause:"12.4",page:14,description:"Over-reliance on a single vendor for critical legal AI infrastructure. Contract advises maintaining manual backup processes."},
+  {id:"R9",title:"User Limit Breach",severity:"LOW",clause:"3.2(d)",page:5,description:"Exceeding 200 concurrent users without approval triggers additional licensing fees and potential breach of license terms."},
+];
+
+const dates = [
+  {id:"D1",event:"Contract Effective Date",date:"January 15, 2025",clause:"Cover / Sec 13.1",page:"1",urgency:"PAST"},
+  {id:"D2",event:"First Payment Due",date:"January 15, 2025",clause:"Section 3.3",page:"5",urgency:"PAST"},
+  {id:"D3",event:"API Integration Deadline",date:"March 16, 2025",clause:"Section 2.1(c)",page:"4",urgency:"PAST"},
+  {id:"D4",event:"Second Payment Due",date:"April 15, 2025",clause:"Section 3.3",page:"5",urgency:"PAST"},
+  {id:"D5",event:"Phase 2 Customization Start",date:"March 16, 2025",clause:"Exhibit A",page:"20",urgency:"PAST"},
+  {id:"D6",event:"Third Payment Due",date:"July 15, 2025",clause:"Section 3.3",page:"5",urgency:"UPCOMING"},
+  {id:"D7",event:"Fourth Payment Due",date:"October 15, 2025",clause:"Section 3.3",page:"5",urgency:"UPCOMING"},
+  {id:"D8",event:"Steady State Phase Begins",date:"June 16, 2025",clause:"Exhibit A",page:"20",urgency:"UPCOMING"},
+  {id:"D9",event:"Year 2 Start",date:"January 15, 2026",clause:"Section 13.1",page:"15",urgency:"FUTURE"},
+  {id:"D10",event:"Year 3 Start",date:"January 15, 2027",clause:"Section 13.1",page:"15",urgency:"FUTURE"},
+  {id:"D11",event:"⚠ Renewal Notice Deadline",date:"October 16, 2027",clause:"Section 13.2",page:"15",urgency:"CRITICAL"},
+  {id:"D12",event:"Contract Expiry",date:"January 14, 2028",clause:"Section 13.1",page:"15",urgency:"FUTURE"},
+  {id:"D13",event:"Data Deletion Post-Term",date:"Within 30 days of termination",clause:"Section 7.5",page:"9",urgency:"CONDITIONAL"},
+  {id:"D14",event:"Confidentiality Survival End",date:"5 years post-termination",clause:"Section 6.3",page:"8",urgency:"CONDITIONAL"},
+];
+
+const stakeholders = [
+  {id:"S1",name:"NexCore Systems Inc.",role:"Service Provider / Licensor",rep:"Adrian Cole",title:"Chief Executive Officer",email:"legal@nexcoresystems.com",address:"1200 Innovation Drive, Wilmington, DE 19801",page:1},
+  {id:"S2",name:"Meridian Law Group LLP",role:"Client / Licensee",rep:"Priya Weston",title:"Managing Partner",email:"contracts@meridianlaw.com",address:"88 Financial District Plaza, New York, NY 10005",page:1},
+  {id:"S3",name:"Meridian Global Holdings Inc.",role:"Guarantor (Parent Entity)",rep:"Thomas Reeves",title:"Chairman",email:"N/A",address:"200 Park Avenue, New York, NY 10166",page:1},
+  {id:"S4",name:"Amazon Web Services (AWS)",role:"Sub-processor / Infrastructure",rep:"N/A",title:"Sub-processor",email:"N/A",address:"Region: us-east-1",page:22},
+  {id:"S5",name:"JAMS",role:"Dispute Resolution Body",rep:"N/A",title:"Arbitration Administrator",email:"N/A",address:"New York, NY",page:16},
+];
+
+// ── RENDER CHUNKS ─────────────────────────────────────────────────────────
+const grid = document.getElementById('chunksGrid');
+chunks.forEach(c => {
+  const el = document.createElement('div');
+  el.className = 'chunk-pill';
+  el.innerHTML = `<span class="chunk-pill-id">${c.id}</span><span class="chunk-pill-sec">p.${c.page} · ${c.words}w</span>`;
+  el.onclick = () => {
+    document.querySelectorAll('.chunk-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    const det = document.getElementById('chunkDetail');
+    const preview = chunkPreviews[c.id] || `[Content from page ${c.page} — ${c.words} words]\n\n${c.section}`;
+    det.innerHTML = `<div class="chunk-detail-header">${c.id} · ${c.section} · Page ${c.page} · ${c.words} words</div>${preview}`;
+    det.classList.add('visible');
+  };
+  grid.appendChild(el);
+});
+
+// ── RENDER Q&A ────────────────────────────────────────────────────────────
+const qaContainer = document.getElementById('qaContainer');
+qaData.forEach((qa, i) => {
+  const card = document.createElement('div');
+  card.className = 'qa-card';
+  card.innerHTML = `
+    <div class="qa-question" onclick="toggleQA(this)">
+      <span class="qa-q-text">${qa.question}</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-body">
+      <div class="qa-chunks-used">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;margin-right:4px;">CHUNKS SEARCHED:</span>
+        ${qa.chunks.map(c => `<span class="chunk-tag">${c}</span>`).join('')}
+        <span style="font-family:var(--mono);font-size:10px;color:var(--green);margin-left:8px;">CONFIDENCE: ${qa.confidence}</span>
+      </div>
+      <div class="qa-answer">${qa.answer.replace(/\[Section ([^\]]+)\]/g, '<span class="citation-inline">[Section $1]</span>').replace(/\[Cover Page[^\]]*\]/g, '<span class="citation-inline">[Cover Page]</span>').replace(/\[Exhibit ([^\]]+)\]/g, '<span class="citation-inline">[Exhibit $1]</span>').replace(/\n/g,'<br>')}</div>
+      <div class="sources-list">
+        <div class="sources-title">Sources</div>
+        ${qa.sources.map(s => `<div class="source-item">${s}</div>`).join('')}
+      </div>
+    </div>`;
+  qaContainer.appendChild(card);
+});
+
+function toggleQA(el) {
+  const card = el.parentElement;
+  card.classList.toggle('open');
+}
+
+// ── RENDER DASHBOARD ──────────────────────────────────────────────────────
+const risksEl = document.getElementById('dash-risks');
+risksEl.innerHTML = `<div class="risks-grid">${risks.map(r => `
+  <div class="risk-card">
+    <div class="risk-id">${r.id}</div>
+    <div class="severity-badge sev-${r.severity}">${r.severity}</div>
+    <div class="risk-content">
+      <div class="risk-title">${r.title}</div>
+      <div class="risk-desc">${r.description}</div>
+    </div>
+    <div class="risk-cite">§${r.clause}<br>p.${r.page}</div>
+  </div>`).join('')}</div>`;
+
+const datesEl = document.getElementById('dash-dates');
+datesEl.innerHTML = `<div class="dates-list">${dates.map(d => `
+  <div class="date-row">
+    <div class="urgency-pill urg-${d.urgency}">${d.urgency}</div>
+    <div class="date-event">${d.event}</div>
+    <div class="date-val">${d.date}</div>
+    <div class="date-cite">${d.clause}<br>p.${d.page}</div>
+  </div>`).join('')}</div>`;
+
+const stakeEl = document.getElementById('dash-stakeholders');
+stakeEl.innerHTML = `<div class="stakeholders-grid">${stakeholders.map(s => `
+  <div class="stakeholder-card">
+    <div class="s-role">${s.role}</div>
+    <div class="s-name">${s.name}</div>
+    <div class="s-rep">${s.rep}${s.title !== 'N/A' ? ' · ' + s.title : ''}</div>
+    <div class="s-detail"><span class="s-detail-key">Email</span>${s.email}</div>
+    <div class="s-detail"><span class="s-detail-key">Address</span>${s.address}</div>
+    <div class="s-cite">Page ${s.page}</div>
+  </div>`).join('')}</div>`;
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.dash-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dash-' + tab).classList.add('active');
+}
+
+// ── COPY BUTTONS ──────────────────────────────────────────────────────────
+function copyPrompt(btn) {
+  const box = btn.parentElement;
+  const text = box.innerText.replace('COPY','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'COPIED';
+    btn.style.color = '#86efac';
+    setTimeout(() => { btn.textContent = 'COPY'; btn.style.color = ''; }, 2000);
+  });
+}
+
+// ── SCROLL ANIMATIONS ─────────────────────────────────────────────────────
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
